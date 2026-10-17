@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stock Checker</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <h1>Stock Checker</h1>
+      <p class="subtitle">Type a model name to see availability, stock and price.</p>
+    </header>
+
+    <!-- Data loading -->
+    <section class="panel" id="drop-zone">
+      <div class="load-row">
+        <label class="btn" for="file-input">Load spreadsheet</label>
+        <input type="file" id="file-input" accept=".xlsx,.xls,.csv" hidden>
+        <span class="muted" id="file-status">No data loaded. Choose an Excel or CSV file, or drop it here.</span>
+      </div>
+      <p class="notice" id="load-notice" hidden></p>
+      <p class="error" id="load-error" hidden></p>
+    </section>
+
+    <!-- Shown only when a column can't be matched automatically -->
+    <section class="panel" id="mapping-panel" hidden>
+      <h2>Which columns hold your data in <span id="mapping-file"></span>?</h2>
+      <p class="muted">We couldn't match every column automatically. Pick them once and we'll remember.</p>
+      <label class="header-row-label">Row with the column headings
+        <select id="map-header-row"></select>
+      </label>
+      <div class="mapping-grid">
+        <label>Model <select id="map-model"></select></label>
+        <label>Stock <select id="map-stock"></select></label>
+        <label>Price <select id="map-price"></select></label>
+      </div>
+      <div class="mapping-actions">
+        <button class="btn" id="map-save">Save columns</button>
+        <button class="btn btn-secondary" id="map-skip">Skip this sheet</button>
+      </div>
+    </section>
+
+    <!-- Search -->
+    <section class="search-section">
+      <input type="search" id="search-input" class="search-input"
+             placeholder="Search model, e.g. ABC-100" autocomplete="off" disabled>
+      <p class="muted" id="summary"></p>
+    </section>
+
+    <section id="results" class="results" aria-live="polite"></section>
+
+    <!-- Settings -->
+    <details class="panel settings">
+      <summary>Settings</summary>
+      <div class="settings-grid">
+        <label>Low-stock threshold
+          <input type="number" id="setting-threshold" min="0">
+        </label>
+      </div>
+    </details>
+  </main>
+
+  <!-- SheetJS reads Excel/CSV files in the browser -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- App scripts: order matters, each uses the ones above it -->
+  <script src="js/config.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/loader.js"></script>
+  <script src="js/search.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

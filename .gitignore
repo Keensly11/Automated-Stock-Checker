@@ -1,0 +1,13 @@
+# Real stock/price spreadsheets stay out of the repo
+*.xlsx
+*.xls
+*.xlsm
+~$*
+
+# Local tool settings
+.claude/
+.vscode/
+
+# OS clutter
+Thumbs.db
+.DS_Store

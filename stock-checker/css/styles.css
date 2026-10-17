@@ -1,0 +1,176 @@
+/* All styling for the stock checker. Colors are defined once as variables below. */
+
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --text: #1c1f24;
+  --muted: #6b7280;
+  --border: #e2e5ea;
+  --accent: #2563eb;
+  --accent-text: #ffffff;
+
+  --in-stock-bg: #dcfce7;
+  --in-stock-text: #166534;
+  --low-stock-bg: #fef3c7;
+  --low-stock-text: #92400e;
+  --out-stock-bg: #fee2e2;
+  --out-stock-text: #991b1b;
+  --error: #b91c1c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111317;
+    --surface: #1b1e24;
+    --text: #e8eaed;
+    --muted: #9aa0a8;
+    --border: #2c3038;
+    --accent: #3b82f6;
+
+    --in-stock-bg: #14361f;
+    --in-stock-text: #86efac;
+    --low-stock-bg: #3b2c0b;
+    --low-stock-text: #fcd34d;
+    --out-stock-bg: #3d1515;
+    --out-stock-text: #fca5a5;
+    --error: #f87171;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.header h1 { margin: 0; font-size: 1.75rem; }
+.subtitle { margin: 4px 0 20px; color: var(--muted); }
+.muted { color: var(--muted); font-size: 0.9rem; }
+.error { color: var(--error); margin: 8px 0 0; }
+
+/* Panels */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.panel h2 { margin: 0 0 4px; font-size: 1.1rem; }
+.panel.dragging { border-color: var(--accent); border-style: dashed; }
+
+.error, .notice { white-space: pre-line; }
+.notice { color: var(--muted); font-size: 0.9rem; margin: 8px 0 0; }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.mapping-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.header-row-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+  font-size: 0.9rem;
+}
+.header-row-label select { max-width: 100%; }
+
+.load-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+/* Column mapping and settings */
+.mapping-grid, .settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+.mapping-grid label, .settings-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+}
+select, .settings-grid input {
+  font: inherit;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+}
+.settings summary { cursor: pointer; font-weight: 600; }
+
+/* Search */
+.search-section { margin-bottom: 16px; }
+.search-input {
+  width: 100%;
+  font-size: 1.25rem;
+  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+}
+.search-input:focus { outline: none; border-color: var(--accent); }
+.search-input:disabled { opacity: 0.6; }
+
+/* Result cards */
+.results { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  align-items: center;
+}
+.card-model { font-weight: 600; font-size: 1.1rem; word-break: break-word; }
+.card-details { color: var(--muted); font-size: 0.95rem; grid-column: 1; }
+.card-price { font-weight: 700; font-size: 1.15rem; text-align: right; }
+.card .badge { grid-column: 2; justify-self: end; }
+.card-source { color: var(--muted); font-size: 0.85rem; grid-column: 1 / -1; }
+
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.badge-in { background: var(--in-stock-bg); color: var(--in-stock-text); }
+.badge-low { background: var(--low-stock-bg); color: var(--low-stock-text); }
+.badge-out { background: var(--out-stock-bg); color: var(--out-stock-text); }
+.badge-other { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+
+.not-found {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+.suggestion {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 10px;
+  margin: 4px 4px 0 0;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+}
