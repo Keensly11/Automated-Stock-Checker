@@ -2,8 +2,13 @@
 
 const elements = {
   fileInput: document.getElementById("file-input"),
-  dropZone: document.getElementById("drop-zone"),
+  fileInfo: document.getElementById("file-info"),
   fileStatus: document.getElementById("file-status"),
+  emptyState: document.getElementById("empty-state"),
+  searchArea: document.getElementById("search-area"),
+  filterChips: document.querySelectorAll(".chip[data-filter]"),
+  sortSelect: document.getElementById("sort-select"),
+  resultCount: document.getElementById("result-count"),
   loadNotice: document.getElementById("load-notice"),
   loadError: document.getElementById("load-error"),
   mappingPanel: document.getElementById("mapping-panel"),
@@ -16,7 +21,6 @@ const elements = {
   mappingSave: document.getElementById("map-save"),
   mappingSkip: document.getElementById("map-skip"),
   searchInput: document.getElementById("search-input"),
-  summary: document.getElementById("summary"),
   results: document.getElementById("results"),
   thresholdInput: document.getElementById("setting-threshold"),
 };
@@ -25,6 +29,8 @@ const state = {
   data: DataStore.loadData(), // the loaded master file: { fileName, loadedAt, sheetNames, products }
   settings: DataStore.loadSettings(),
   job: null, // the file being read now: { fileName, sheets, index, products, sheetNames, skipped }
+  filter: "all",  // availability filter: "all" | "in" | "low" | "out"
+  sort: "match",  // "match" | "price-asc" | "price-desc" | "stock-desc"
 };
 
 // ---------- Loading the master file ----------
@@ -166,33 +172,100 @@ function products() {
 }
 
 // Redraws everything that depends on the loaded file.
+// Before a file is loaded only the "Load your master file" box shows;
+// after, the top bar shows the file and the search area takes over.
 function render() {
+  const hasData = products().length > 0;
+  elements.emptyState.hidden = hasData;
+  elements.searchArea.hidden = !hasData;
+  elements.fileInfo.hidden = !hasData;
   UI.renderFileStatus(elements.fileStatus, state.data);
-  elements.searchInput.disabled = !products().length;
+  updateFilterCounts();
   refresh();
 }
 
-function refresh() {
-  UI.renderSummary(elements.summary, products(), state.settings);
+function statusOf(product) {
+  return UI.availability(product, state.settings.lowStockThreshold).key;
+}
 
-  const query = elements.searchInput.value.trim();
-  if (!query || !products().length) {
+function updateFilterCounts() {
+  const counts = { all: products().length, in: 0, low: 0, out: 0 };
+  for (const product of products()) {
+    const key = statusOf(product);
+    if (key in counts) counts[key]++;
+  }
+  UI.renderFilterCounts(elements.filterChips, counts);
+  UI.markActiveChip(elements.filterChips, state.filter);
+}
+
+// Applies the availability filter and the chosen sort order.
+// Prices that aren't set always go to the end when sorting by price.
+function filterAndSort(list) {
+  const filtered = state.filter === "all" ? list : list.filter((p) => statusOf(p) === state.filter);
+  const byPrice = (direction) => (a, b) => {
+    if (a.price === null) return b.price === null ? 0 : 1;
+    if (b.price === null) return -1;
+    return (a.price - b.price) * direction;
+  };
+  const sorters = {
+    "price-asc": byPrice(1),
+    "price-desc": byPrice(-1),
+    "stock-desc": (a, b) => (b.stock ?? -1) - (a.stock ?? -1),
+  };
+  const sorter = sorters[state.sort];
+  return sorter ? filtered.slice().sort(sorter) : filtered;
+}
+
+function refresh() {
+  const all = products();
+  if (!all.length) {
     UI.clear(elements.results);
+    elements.resultCount.textContent = "";
     return;
   }
-  const matches = Search.find(products(), query);
-  if (matches.length) {
-    // Show the sheet name on each result when the file has more than one sheet.
-    const showSheet = (state.data.sheetNames || []).length > 1;
-    UI.renderResults(elements.results, matches, state.settings, showSheet);
-  } else {
-    const suggestions = Search.suggest(products(), query, CONFIG.maxSuggestions);
-    UI.renderNotFound(elements.results, query, suggestions, pickSuggestion);
+
+  const query = elements.searchInput.value.trim();
+  const filterLabel = UI.STATUSES[state.filter];
+
+  // Nothing typed and no filter: wait for a search.
+  if (!query && state.filter === "all") {
+    UI.clear(elements.results);
+    elements.resultCount.textContent = "Type a model name, or pick a filter to browse.";
+    return;
   }
+
+  // With text, search first; with only a filter, browse the whole file.
+  const matches = query ? Search.find(all, query) : all;
+  if (query && !matches.length) {
+    elements.resultCount.textContent = "";
+    UI.renderNotFound(elements.results, query, Search.suggest(all, query, CONFIG.maxSuggestions), pickSuggestion);
+    return;
+  }
+
+  const shown = filterAndSort(matches);
+  if (!shown.length) {
+    elements.resultCount.textContent = "";
+    UI.renderMessage(elements.results, `None of the matches for "${query}" are ${filterLabel.toLowerCase()}.`,
+      [{ label: `Show all ${matches.length} match${matches.length === 1 ? "" : "es"}`, onClick: () => setFilter("all") }]);
+    return;
+  }
+
+  const filterText = filterLabel ? ` · ${filterLabel}` : "";
+  elements.resultCount.textContent = `${shown.length} result${shown.length === 1 ? "" : "s"}${filterText}`;
+  // Show the sheet name on each result when the file has more than one sheet.
+  const showSheet = (state.data.sheetNames || []).length > 1;
+  UI.renderResults(elements.results, shown, state.settings, showSheet);
 }
 
 function pickSuggestion(model) {
   elements.searchInput.value = model;
+  refresh();
+}
+
+// Clicking the active chip again goes back to "All".
+function setFilter(filter) {
+  state.filter = filter === state.filter ? "all" : filter;
+  UI.markActiveChip(elements.filterChips, state.filter);
   refresh();
 }
 
@@ -208,6 +281,7 @@ function saveSettingsFromForm() {
     ? threshold
     : CONFIG.defaults.lowStockThreshold;
   DataStore.saveSettings(state.settings);
+  updateFilterCounts(); // low-stock counts depend on the threshold
   refresh();
 }
 
@@ -218,17 +292,47 @@ elements.fileInput.addEventListener("change", () => {
   elements.fileInput.value = ""; // lets the same file be loaded again later
 });
 
-elements.dropZone.addEventListener("dragover", (event) => {
+// A file can be dropped anywhere on the page.
+document.addEventListener("dragover", (event) => {
   event.preventDefault();
-  elements.dropZone.classList.add("dragging");
+  document.body.classList.add("dragging");
 });
-elements.dropZone.addEventListener("dragleave", () => {
-  elements.dropZone.classList.remove("dragging");
+document.addEventListener("dragleave", (event) => {
+  if (!event.relatedTarget) document.body.classList.remove("dragging"); // left the window
 });
-elements.dropZone.addEventListener("drop", (event) => {
+document.addEventListener("drop", (event) => {
   event.preventDefault();
-  elements.dropZone.classList.remove("dragging");
+  document.body.classList.remove("dragging");
   handleFile(event.dataTransfer.files[0]);
+});
+
+for (const chip of elements.filterChips) {
+  chip.addEventListener("click", () => setFilter(chip.dataset.filter));
+}
+elements.sortSelect.addEventListener("change", () => {
+  state.sort = elements.sortSelect.value;
+  refresh();
+});
+
+// The Settings pop-over closes when clicking anywhere else.
+const settingsMenu = document.querySelector(".settings-menu");
+document.addEventListener("click", (event) => {
+  if (settingsMenu.open && !settingsMenu.contains(event.target)) settingsMenu.open = false;
+});
+
+// Keyboard: "/" jumps to the search box, Escape clears it.
+document.addEventListener("keydown", (event) => {
+  const typing = ["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName);
+  if (event.key === "/" && !typing && !elements.searchArea.hidden) {
+    event.preventDefault();
+    elements.searchInput.focus();
+  }
+});
+elements.searchInput.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    elements.searchInput.value = "";
+    refresh();
+  }
 });
 
 elements.headerRowSelect.addEventListener("change", changeHeaderRow);

@@ -2,12 +2,24 @@
 // Text is always set with textContent so spreadsheet values can't inject HTML.
 
 const UI = {
-  // Picks the availability badge for a product, from its stock count or its stock words.
+  // Labels for each availability status; key is also used by the filter chips.
+  STATUSES: {
+    in: "In stock",
+    low: "Low stock",
+    out: "Out of stock",
+  },
+
+  // Works out a product's availability, from its stock count or its stock words.
+  // Returns { key: "in" | "low" | "out" | "other", label }.
   availability(product, threshold) {
     if (product.stock === null) return this.availabilityFromText(product.stockText);
-    if (product.stock <= 0) return { label: "Out of stock", className: "badge-out" };
-    if (product.stock <= threshold) return { label: "Low stock", className: "badge-low" };
-    return { label: "In stock", className: "badge-in" };
+    if (product.stock <= 0) return this.status("out");
+    if (product.stock <= threshold) return this.status("low");
+    return this.status("in");
+  },
+
+  status(key) {
+    return { key, label: this.STATUSES[key] };
   },
 
   // "Available" -> In stock, "Sold out" -> Out of stock, using CONFIG.availabilityWords.
@@ -17,15 +29,22 @@ const UI = {
     const words = CONFIG.availabilityWords;
     const matches = (list) => list.some((word) =>
       word.length <= 3 ? lower === word : lower.includes(word));
-    if (matches(words.out)) return { label: "Out of stock", className: "badge-out" };
-    if (matches(words.low)) return { label: "Low stock", className: "badge-low" };
-    if (matches(words.in)) return { label: "In stock", className: "badge-in" };
-    return { label: text, className: "badge-other" };
+    if (matches(words.out)) return this.status("out");
+    if (matches(words.low)) return this.status("low");
+    if (matches(words.in)) return this.status("in");
+    return { key: "other", label: text };
   },
 
-  stockDescription(product) {
-    if (product.stock === null) return `Availability: ${product.stockText}`;
-    return `Stock: ${product.stock} unit${product.stock === 1 ? "" : "s"}`;
+  // "24 units in stock" for counts; the file's own words (e.g. "Available") otherwise.
+  stockElement(product) {
+    const wrapper = this.el("span", "card-stock");
+    if (product.stock === null) {
+      wrapper.textContent = product.stockText;
+    } else {
+      wrapper.append(this.el("strong", "", String(product.stock)),
+        ` unit${product.stock === 1 ? "" : "s"} in stock`);
+    }
+    return wrapper;
   },
 
   // Shows the price in the currency the file uses: "AED 2,450", "₹1,29,900", or just "2,450".
@@ -48,72 +67,97 @@ const UI = {
     return node;
   },
 
-  // One card per product: model and price on top, stock count and badge below,
-  // and which sheet it came from when the file has several.
-  createCard(product, settings, showSource) {
+  // One card per product:
+  //   model name ............ availability badge
+  //   sheet name (when the file has several)
+  //   - - - - - - - - - - - - - - - - - - - - -
+  //   PRICE (large) ......... 24 units in stock
+  // A colored stripe on the left repeats the availability at a glance.
+  createCard(product, settings, showSheet) {
     const status = this.availability(product, settings.lowStockThreshold);
-    const card = this.el("article", "card");
-    card.append(
-      this.el("div", "card-model", product.model),
-      this.el("div", "card-price", this.formatPrice(product.price, product.currency)),
-      this.el("div", "card-details", this.stockDescription(product)),
-      this.el("span", `badge ${status.className}`, status.label),
-    );
-    if (showSource) card.append(this.el("div", "card-source", `Sheet: ${product.sheet}`));
+    const card = this.el("article", `card status-${status.key}`);
+
+    const title = this.el("div");
+    title.append(this.el("h3", "card-model", product.model));
+    if (showSheet && product.sheet) title.append(this.el("div", "card-sheet", `Sheet: ${product.sheet}`));
+    const head = this.el("div", "card-head");
+    head.append(title, this.el("span", `badge badge-${status.key}`, status.label));
+
+    const hasPrice = product.price !== null && product.price !== undefined;
+    const price = this.el("span", hasPrice ? "card-price" : "card-price no-price",
+      this.formatPrice(product.price, product.currency));
+    const foot = this.el("div", "card-foot");
+    foot.append(price, this.stockElement(product));
+
+    card.append(head, foot);
     return card;
   },
 
-  renderResults(container, products, settings, showSource) {
+  renderResults(container, products, settings, showSheet) {
     container.replaceChildren();
     const shown = products.slice(0, CONFIG.maxResults);
-    for (const product of shown) container.append(this.createCard(product, settings, showSource));
+    for (const product of shown) container.append(this.createCard(product, settings, showSheet));
     if (products.length > shown.length) {
-      container.append(this.el("p", "muted",
-        `Showing ${shown.length} of ${products.length} matches. Type more to narrow it down.`));
+      container.append(this.el("p", "more-results",
+        `Showing the first ${shown.length} of ${products.length}. Type more to narrow it down.`));
     }
+  },
+
+  // A centered message in the results area, with optional buttons: [{ label, onClick }].
+  renderMessage(container, text, buttons = [], hint = "") {
+    container.replaceChildren();
+    const box = this.el("div", "message-box");
+    box.append(this.el("p", "", text));
+    if (hint) box.append(this.el("p", "muted", hint));
+    for (const { label, onClick } of buttons) {
+      const button = this.el("button", "suggestion", label);
+      button.addEventListener("click", onClick);
+      box.append(button);
+    }
+    container.append(box);
   },
 
   // "No match" box with clickable suggestions; onPick(model) runs when one is clicked.
   renderNotFound(container, query, suggestions, onPick) {
-    container.replaceChildren();
-    const box = this.el("div", "not-found");
-    box.append(this.el("strong", "", `No model found for "${query}".`));
-    if (suggestions.length) {
-      box.append(this.el("div", "muted", "Did you mean:"));
-      for (const product of suggestions) {
-        const button = this.el("button", "suggestion", product.model);
-        button.addEventListener("click", () => onPick(product.model));
-        box.append(button);
-      }
-    }
-    container.append(box);
+    const buttons = suggestions.map((product) => ({
+      label: product.model,
+      onClick: () => onPick(product.model),
+    }));
+    this.renderMessage(container, `No model found for "${query}".`, buttons,
+      suggestions.length ? "Did you mean:" : "Check the spelling or try part of the model name.");
   },
 
   clear(container) {
     container.replaceChildren();
   },
 
-  renderSummary(element, products, settings) {
-    if (!products.length) {
+  // Puts the number of products in each availability group on the filter chips.
+  renderFilterCounts(chips, counts) {
+    for (const chip of chips) {
+      chip.querySelector(".chip-count").textContent = counts[chip.dataset.filter] ?? 0;
+    }
+  },
+
+  markActiveChip(chips, filter) {
+    for (const chip of chips) {
+      const active = chip.dataset.filter === filter;
+      chip.classList.toggle("active", active);
+      chip.setAttribute("aria-pressed", String(active));
+    }
+  },
+
+  // Compact file line in the top bar: "Stock list.xlsx · 3 sheets · loaded 22 Oct, 10:42".
+  renderFileStatus(element, data) {
+    if (!data) {
       element.textContent = "";
       return;
     }
-    const badges = products.map((p) => this.availability(p, settings.lowStockThreshold).className);
-    const out = badges.filter((b) => b === "badge-out").length;
-    const low = badges.filter((b) => b === "badge-low").length;
-    element.textContent = `${products.length} models · ${low} low stock · ${out} out of stock`;
-  },
-
-  // Status line next to the load button.
-  renderFileStatus(element, data) {
-    if (!data) {
-      element.textContent = "No data loaded. Choose an Excel or CSV file, or drop it here.";
-      return;
-    }
-    const date = new Date(data.loadedAt).toLocaleString();
+    const loaded = new Date(data.loadedAt);
+    const when = loaded.toLocaleString(undefined, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
     const sheetCount = (data.sheetNames || []).length;
-    const sheets = sheetCount > 1 ? ` (${sheetCount} sheets)` : "";
-    element.textContent = `Last loaded: ${data.fileName}${sheets}, ${date}`;
+    const sheets = sheetCount > 1 ? ` · ${sheetCount} sheets` : "";
+    element.textContent = `${data.fileName}${sheets} · loaded ${when}`;
+    element.title = `${data.fileName}, loaded ${loaded.toLocaleString()}`;
   },
 
   // Shows a message under the load button, or hides it when the message is empty.

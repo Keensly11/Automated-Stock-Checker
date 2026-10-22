@@ -19,6 +19,10 @@ Status: a personal side project. It isn't used by the company, because distribut
 - **Currency comes from the file.** The page checks, in order: the price cell as Excel displays it, then the most common currency on that sheet, then the price heading ("Unit Price (AED)"). There is no currency setting.
 - **Search** ignores case, spaces and dashes, ranks exact, then starts-with, then contains, and suggests near spellings when nothing matches.
 - **Badges:** In stock, Low stock (at or below the threshold, default 5, set in Settings) and Out of stock.
+- **Layout:** before a file is loaded, only a "Load your master file" box shows; a file can be dropped anywhere on the page. After loading, a slim top bar shows the file name with "Replace file" and a Settings pop-over, and the sticky search box takes over.
+- **Cards:** model name and badge on top, sheet name when the file has several, then a large price and the stock count. A colored stripe on the left repeats the availability.
+- **Filters and sorting:** the chips (All / In stock / Low stock / Out of stock) show counts for the whole file and filter the results. With no search text, a chip browses the whole file. Sort options: best match, price low to high or high to low, most stock first. Prices that aren't set go last.
+- **Keyboard:** `/` focuses the search box and `Esc` clears it.
 - **Data and settings persist** in the browser's `localStorage`. They live only in that browser.
 
 ## Files

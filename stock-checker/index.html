@@ -7,22 +7,45 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <main class="container">
-    <header class="header">
-      <h1>Stock Checker</h1>
-      <p class="subtitle">Type a model name to see availability, stock and price.</p>
-    </header>
+  <!-- Top bar: app name, the loaded file, and settings. Stays small so the search is the focus. -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <h1 class="brand">Stock Checker</h1>
 
-    <!-- Data loading -->
-    <section class="panel" id="drop-zone">
-      <div class="load-row">
-        <label class="btn" for="file-input">Load spreadsheet</label>
-        <input type="file" id="file-input" accept=".xlsx,.xls,.csv" hidden>
-        <span class="muted" id="file-status">No data loaded. Choose an Excel or CSV file, or drop it here.</span>
+      <div class="file-info" id="file-info" hidden>
+        <span class="file-status" id="file-status"></span>
+        <label class="btn btn-small btn-secondary" for="file-input">Replace file</label>
       </div>
-      <p class="notice" id="load-notice" hidden></p>
-      <p class="error" id="load-error" hidden></p>
+
+      <details class="settings-menu">
+        <summary class="btn btn-small btn-secondary">Settings</summary>
+        <div class="settings-popover">
+          <label>Low-stock threshold
+            <input type="number" id="setting-threshold" min="0">
+          </label>
+          <p class="muted">Stock at or below this number shows as "Low stock".</p>
+        </div>
+      </details>
+    </div>
+  </header>
+
+  <input type="file" id="file-input" accept=".xlsx,.xls,.csv" hidden>
+
+  <main class="container">
+    <!-- Shown only until a file is loaded -->
+    <section class="empty-state" id="empty-state">
+      <svg class="empty-icon" viewBox="0 0 48 48" aria-hidden="true">
+        <rect x="8" y="4" width="32" height="40" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <path d="M8 16h32M8 26h32M8 36h32M20 4v40" stroke="currentColor" stroke-width="2.5"/>
+      </svg>
+      <h2>Load your master file</h2>
+      <p class="muted">Excel or CSV. Every sheet is read, and the columns and currency are detected automatically.</p>
+      <label class="btn btn-large" for="file-input">Choose file</label>
+      <p class="muted drop-hint">or drop it anywhere on this page</p>
     </section>
+
+    <p class="notice" id="load-notice" hidden></p>
+    <p class="error" id="load-error" hidden></p>
 
     <!-- Shown only when a column can't be matched automatically -->
     <section class="panel" id="mapping-panel" hidden>
@@ -42,24 +65,37 @@
       </div>
     </section>
 
-    <!-- Search -->
-    <section class="search-section">
-      <input type="search" id="search-input" class="search-input"
-             placeholder="Search model, e.g. ABC-100" autocomplete="off" disabled>
-      <p class="muted" id="summary"></p>
-    </section>
+    <!-- Search, availability filters and sorting -->
+    <section class="search-area" id="search-area" hidden>
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input type="search" id="search-input" class="search-input"
+               placeholder="Search model, e.g. ABC-100" autocomplete="off" aria-label="Search model">
+      </div>
 
-    <section id="results" class="results" aria-live="polite"></section>
-
-    <!-- Settings -->
-    <details class="panel settings">
-      <summary>Settings</summary>
-      <div class="settings-grid">
-        <label>Low-stock threshold
-          <input type="number" id="setting-threshold" min="0">
+      <div class="filter-bar">
+        <div class="chips" role="group" aria-label="Filter by availability">
+          <button class="chip" data-filter="all">All <span class="chip-count"></span></button>
+          <button class="chip chip-in" data-filter="in">In stock <span class="chip-count"></span></button>
+          <button class="chip chip-low" data-filter="low">Low stock <span class="chip-count"></span></button>
+          <button class="chip chip-out" data-filter="out">Out of stock <span class="chip-count"></span></button>
+        </div>
+        <label class="sort">Sort
+          <select id="sort-select">
+            <option value="match">Best match</option>
+            <option value="price-asc">Price: low to high</option>
+            <option value="price-desc">Price: high to low</option>
+            <option value="stock-desc">Most stock first</option>
+          </select>
         </label>
       </div>
-    </details>
+    </section>
+
+    <p class="result-count" id="result-count"></p>
+    <section id="results" class="results" aria-live="polite"></section>
   </main>
 
   <!-- SheetJS reads Excel/CSV files in the browser -->
