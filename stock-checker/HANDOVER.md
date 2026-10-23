@@ -23,6 +23,8 @@ Status: a personal side project. It isn't used by the company, because distribut
 - **Cards:** model name and badge on top, sheet name when the file has several, then a large price and the stock count. A colored stripe on the left repeats the availability.
 - **Filters and sorting:** the chips (All / In stock / Low stock / Out of stock) show counts for the whole file and filter the results. With no search text, a chip browses the whole file. Sort options: best match, price low to high or high to low, most stock first. Prices that aren't set go last.
 - **Keyboard:** `/` focuses the search box and `Esc` clears it.
+- **Fosutog branding,** matching fosutog.com: teal `#447F98` palette (the `--brand-*` variables at the top of `styles.css`), the Poppins font from Google Fonts, the logo mark as an inline `<symbol id="fosutog-mark">` in `index.html`, the "FOSUTOG / Stock Checker" wordmark, a favicon and touch icon in `img/`, and a faint logo watermark on the empty state.
+- **Light/dark:** follows the device setting until the sun/moon button is used. The choice is saved under the same key as fosutog.com (`fosutog-theme`).
 - **Data and settings persist** in the browser's `localStorage`. They live only in that browser.
 
 ## Files

@@ -1,50 +1,89 @@
-/* All styling for the stock checker. Colors are defined once as variables below. */
+/* All styling for the stock checker, in the Fosutog brand (same palette and font as fosutog.com).
+   Colors are defined once as variables below. */
 
 :root {
-  --bg: #f4f5f7;
+  /* Fosutog brand teal */
+  --brand-700: #2f5566;
+  --brand-600: #3a6b81;
+  --brand-500: #447F98;
+  --brand-400: #6aa0b6;
+  --brand-300: #9ec4d4;
+  --brand-100: #d9e8ee;
+  --brand-50: #eef5f8;
+  --amber: #e0a63c;
+  --font: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --radius-field: 9px;
+  --radius-card: 15px;
+
+  --bg: #f5f8f9;
   --surface: #ffffff;
-  --text: #1c1f24;
-  --muted: #6b7280;
-  --border: #e2e5ea;
-  --accent: #2563eb;
-  --accent-soft: #e8efff;
+  --text: #16262e;
+  --muted: #5d6f77;
+  --border: #dbe5e9;
+  --accent: var(--brand-600);        /* teal for text, outlines and active states */
+  --accent-soft: var(--brand-50);
+  --btn-bg: var(--brand-500);        /* main buttons */
+  --btn-hover: var(--brand-600);
   --accent-text: #ffffff;
-  --shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 2px 8px rgba(16, 24, 40, 0.04);
+  --logo: var(--brand-500);
+  --shadow: 0 4px 18px rgba(20, 45, 55, 0.07);
 
   --in-stock-bg: #dcfce7;
   --in-stock-text: #166534;
   --in-stock-line: #22c55e;
-  --low-stock-bg: #fef3c7;
-  --low-stock-text: #92400e;
-  --low-stock-line: #f59e0b;
+  --low-stock-bg: #fdf1dc;
+  --low-stock-text: #8a5a0b;
+  --low-stock-line: var(--amber);
   --out-stock-bg: #fee2e2;
   --out-stock-text: #991b1b;
   --out-stock-line: #ef4444;
   --error: #b91c1c;
+  color-scheme: light;
 }
 
+/* Dark colors: used when the device is in dark mode (unless switched to light),
+   or when dark is picked with the sun/moon button. */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #111317;
-    --surface: #1b1e24;
-    --text: #e8eaed;
-    --muted: #9aa0a8;
-    --border: #2c3038;
-    --accent: #3b82f6;
-    --accent-soft: #1c2a45;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  :root:not([data-theme="light"]) {
+    --bg: #0e1c23;
+    --surface: #15272f;
+    --text: #e6eef1;
+    --muted: #8ba1aa;
+    --border: rgba(255, 255, 255, 0.10);
+    --accent: var(--brand-300);
+    --accent-soft: rgba(68, 127, 152, 0.18);
+    --logo: var(--brand-300);
+    --shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
 
     --in-stock-bg: #14361f;
     --in-stock-text: #86efac;
-    --in-stock-line: #22c55e;
     --low-stock-bg: #3b2c0b;
     --low-stock-text: #fcd34d;
-    --low-stock-line: #f59e0b;
     --out-stock-bg: #3d1515;
     --out-stock-text: #fca5a5;
-    --out-stock-line: #ef4444;
     --error: #f87171;
+    color-scheme: dark;
   }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1c23;
+  --surface: #15272f;
+  --text: #e6eef1;
+  --muted: #8ba1aa;
+  --border: rgba(255, 255, 255, 0.10);
+  --accent: var(--brand-300);
+  --accent-soft: rgba(68, 127, 152, 0.18);
+  --logo: var(--brand-300);
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+
+  --in-stock-bg: #14361f;
+  --in-stock-text: #86efac;
+  --low-stock-bg: #3b2c0b;
+  --low-stock-text: #fcd34d;
+  --out-stock-bg: #3d1515;
+  --out-stock-text: #fca5a5;
+  --error: #f87171;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -54,9 +93,12 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font);
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
+button, input, select { font-family: inherit; }
+:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 2px; }
 
 .container {
   max-width: 820px;
@@ -74,19 +116,21 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--accent);
+  background: var(--btn-bg);
   color: var(--accent-text);
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   padding: 8px 16px;
   font: inherit;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
 }
-.btn:hover { filter: brightness(1.1); }
+.btn:hover { background: var(--btn-hover); }
 .btn-secondary { background: transparent; color: var(--text); border-color: var(--border); }
-.btn-secondary:hover { background: var(--bg); filter: none; }
+.btn-secondary:hover { background: var(--accent-soft); color: var(--accent); }
+.btn-large:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
 .btn-small { padding: 4px 12px; font-size: 0.875rem; }
 .btn-large { padding: 12px 28px; font-size: 1.05rem; }
 
@@ -104,7 +148,42 @@ body {
   gap: 12px;
   flex-wrap: wrap;
 }
-.brand { margin: 0; font-size: 1.15rem; margin-right: auto; }
+/* Fosutog lockup: logo mark + "FOSUTOG" wordmark, as on fosutog.com */
+.brand { display: flex; align-items: center; gap: 10px; margin: 0 auto 0 0; }
+.logo-icon { width: 36px; height: 36px; flex: none; color: var(--logo); }
+.wordmark { display: flex; flex-direction: column; line-height: 1; }
+.wordmark b { font-weight: 800; font-size: 1.25rem; letter-spacing: 0.04em; color: var(--logo); }
+.wordmark small {
+  margin-top: 4px;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Light/dark switch: shows a sun in light mode and a moon in dark mode */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-field);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.theme-toggle:hover { color: var(--accent); background: var(--accent-soft); }
+.theme-toggle svg { width: 18px; height: 18px; }
+.theme-toggle .moon { display: none; }
+:root[data-theme="dark"] .theme-toggle .sun { display: none; }
+:root[data-theme="dark"] .theme-toggle .moon { display: inline; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle .sun { display: none; }
+  :root:not([data-theme="light"]) .theme-toggle .moon { display: inline; }
+}
 .file-info { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .file-status {
   color: var(--muted);
@@ -127,7 +206,7 @@ body {
   width: 240px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-card);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   padding: 12px;
 }
@@ -136,14 +215,29 @@ body {
 
 /* ---------- Empty state (before a file is loaded) ---------- */
 .empty-state {
+  position: relative;
+  overflow: hidden;
   text-align: center;
   background: var(--surface);
-  border: 2px dashed var(--border);
-  border-radius: 16px;
+  border: 2px dashed var(--brand-300);
+  border-radius: 22px;
   padding: 48px 20px;
   margin: 24px 0;
 }
-.empty-icon { width: 56px; height: 56px; color: var(--accent); }
+.empty-state > :not(.empty-watermark) { position: relative; } /* keep content above the watermark */
+/* Large faint Fosutog mark behind the box, like the fosutog.com hero */
+.empty-watermark {
+  position: absolute;
+  right: -90px;
+  top: 50%;
+  width: 360px;
+  height: 360px;
+  transform: translateY(-50%);
+  color: var(--brand-400);
+  opacity: 0.12;
+  pointer-events: none;
+}
+.empty-icon { width: 56px; height: 56px; color: var(--logo); }
 .empty-state h2 { margin: 12px 0 4px; font-size: 1.35rem; }
 .empty-state > .muted { max-width: 420px; margin: 0 auto 20px; }
 .drop-hint { margin: 12px 0 0; }
@@ -170,7 +264,7 @@ body.dragging::after {
 .panel {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   padding: 16px;
   margin-bottom: 16px;
 }
@@ -195,7 +289,7 @@ select, input[type="number"] {
   font: inherit;
   padding: 6px 8px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-field);
   background: var(--bg);
   color: var(--text);
 }
@@ -224,12 +318,12 @@ select, input[type="number"] {
   font-size: 1.25rem;
   padding: 14px 16px 14px 50px;
   border: 2px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius-card);
   background: var(--surface);
   color: var(--text);
   box-shadow: var(--shadow);
 }
-.search-input:focus { outline: none; border-color: var(--accent); }
+.search-input:focus { outline: none; border-color: var(--brand-500); box-shadow: 0 0 0 4px var(--accent-soft); }
 
 .filter-bar {
   display: flex;
@@ -253,7 +347,7 @@ select, input[type="number"] {
   font-size: 0.875rem;
   cursor: pointer;
 }
-.chip:hover { border-color: var(--muted); }
+.chip:hover { border-color: var(--brand-400); }
 .chip-count { color: var(--muted); font-variant-numeric: tabular-nums; }
 .chip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
 .chip.active .chip-count { color: inherit; }
@@ -279,10 +373,12 @@ select, input[type="number"] {
   background: var(--surface);
   border: 1px solid var(--border);
   border-left: 5px solid var(--status-line);
-  border-radius: 14px;
+  border-radius: var(--radius-card);
   padding: 16px 20px;
   box-shadow: var(--shadow);
 }
+.card { transition: transform 0.15s, box-shadow 0.15s; }
+.card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(20, 45, 55, 0.12); }
 .card.status-in { --status-line: var(--in-stock-line); }
 .card.status-low { --status-line: var(--low-stock-line); }
 .card.status-out { --status-line: var(--out-stock-line); }
@@ -329,7 +425,7 @@ select, input[type="number"] {
 .message-box {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius-card);
   padding: 20px;
   text-align: center;
 }

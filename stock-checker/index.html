@@ -3,19 +3,55 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Stock Checker</title>
+  <title>Stock Checker | Fosutog</title>
+  <meta name="theme-color" content="#447F98">
+  <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <!-- Fosutog brand font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Apply a saved light/dark choice before the page draws, so it doesn't flash -->
+  <script>
+    try {
+      const theme = localStorage.getItem("fosutog-theme");
+      if (theme) document.documentElement.dataset.theme = theme;
+    } catch (e) {}
+  </script>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+  <!-- Fosutog logo mark (same as fosutog.com), colored with currentColor -->
+  <svg style="display:none"><symbol id="fosutog-mark" viewBox="0 0 3840 3840">
+    <path transform="matrix(1,0,0,-1,2673.48,1088.04)" d="M0 0C-98.27-16.8-191.78-48.13-278.37-91.79-341.65-123.69-401.23-162.17-456.29-206.38-498.46-102.75-571.69-16.16-663.82 40.75-739.02 87.2-826.82 113.87-920.6 113.87-1177.76 113.87-1389.94-86.66-1420.79-345.75-1489-314.02-1556.15-286.56-1621.96-263.46-1494.25 68.23-1222.54 297.21-907.98 297.21-720.19 297.21-547.66 215.6-411.94 79.25-404.32 79.42-396.68 79.51-389.02 79.51-251.21 79.51-119.83 51.23 0 0" fill="currentColor"/>
+    <path transform="matrix(1,0,0,-1,1535.3529,3045.9412)" d="M0 0-164.876-48.23C-407.366 55.049-600.613 236.601-736.573 460.761L-526.588 529.412C-449.449 331.702-183.529 112.941 0 0" fill="currentColor"/>
+    <path transform="matrix(1,0,0,-1,938.8,2416.75)" d="M0 0C-54.49 23.7-108.92 53.37-162.92 88.87-203.47 115.53-243.87 145.53-283.9 178.65V178.66C-309.22 279.67-322.76 385.35-322.96 494.17-308.67 478.2-293.56 461.9-277.69 445.49-225.42 391.44-159.71 331.02-84.42 277.67-66.73 184.57-39.32 93.62-2.34 5.52-1.57 3.68-.79 1.84 0 0" fill="currentColor"/>
+    <path transform="matrix(1,0,0,-1,1795.97,2268.65)" d="M0 0C-18.83-14.21-38.02-28.72-57.56-43.54-157.38-119.2-262.11-170.85-368.91-197.08-411.53-140.47-448.35-79.27-478.47-14.35-376.53-2.34-277.32 40.84-178.38 115.84-172.53 120.28-166.72 124.67-160.97 129.03-110.42 90.41-58.19 48.67-4.31 3.59-2.88 2.39-1.44 1.19 0 0" fill="currentColor"/>
+    <path transform="matrix(1,0,0,-1,3175.19,1564.72)" d="M0 0C-181.09-28.14-418.22-92.35-688.92-231.69-787.33-282.34-903.27-357.07-1046.07-458.38-1073-437.67-1099.94-416.07-1126.85-393.55-1153.69-371.09-1180.47-349.14-1207.17-327.7-1169-300.21-1133.91-275.39-1101.1-252.63-972.51-163.44-870.62-100.28-780.46-53.87-606.35 35.75-429.71 104.56-255.45 150.65-193.54 167.02-131.84 180.56-70.7 191.22-42.37 129.91-18.65 66.02 0 0" fill="currentColor"/>
+    <path transform="matrix(1,0,0,-1,2290.08,2255.2)" d="M0 0C-8.66-7.47-17.47-15.08-26.44-22.82-71.54-61.69-117.42-98.53-163.72-133.42-256.85-72.86-347.17-6.02-434.25 66.84-917.12 470.84-1275.65 615.5-1491.39 665.72-1541.83 677.46-1586.71 684.63-1625.76 688.75-1607.07 755.25-1583.25 819.59-1554.74 881.33-1528.76 877.47-1501.38 872.57-1472.62 866.44-1317.22 833.32-1150.28 770.54-976.43 679.83-762.76 568.35-537.17 413.72-305.91 220.23-203.7 134.71-101.11 61.93 0 0" fill="currentColor"/>
+    <path transform="matrix(1,0,0,-1,3056.83,2559.58)" d="M0 0C-35.43-62.85-75.92-122.45-120.92-178.28-248.61-147.91-374.28-107.45-496.61-57.23-513.9-50.13-531.13-42.84-548.29-35.34-542.85-30.71-537.43-26.07-532.03-21.42-509.26-1.79-487.7 16.89-466.85 34.95L-466.51 35.24C-435.12 62.43-405.92 87.73-378.08 111.51-241.88 58.6-113.96 23.32 0 0" fill="currentColor"/>
+    <path transform="matrix(1,0,0,-1,3224.17,1920)" d="M0 0C0-107.68-13.05-212.32-37.66-312.41-123.83-355.04-195.9-395.04-260.4-435.2-235.33-357.06-215.66-267.39-205.77-165.34-405.28-274.05-518.79-372.38-699.32-528.75-720.23-546.87-741.86-565.6-764.66-585.25-887.78-691.38-1023.4-790.24-1169.4-880.4-1257.22-861.73-1341.21-832.7-1420.02-794.63-1247.39-699.79-1065.96-580.93-895.24-433.76-872.62-414.27-851.09-395.62-830.27-377.58-615.57-191.6-485.24-78.71-200.94 62.45-143.76 90.84-80.34 120.39-8.75 151.9-2.97 102.07 0 51.38 0 0" fill="currentColor"/>
+    <path transform="matrix(1,0,0,-1,2809.87,2873.42)" d="M0 0C-233.03-217.59-545.9-350.75-889.87-350.75-942.76-350.75-994.92-347.6-1046.16-341.48L-1046.2-340.69C-949.46-328.46-857.39-301.18-772.44-261.28-1394.88-188.28-1877.99 344.79-1877.99 991.56-1877.99 1040.69-1875.2 1089.16-1869.78 1136.83-1813.56 1116.17-1751.41 1089.85-1683.46 1056.38-1683.98 1042.54-1684.24 1028.64-1684.24 1014.68-1684.24 400.65-1186.47-97.12-572.44-97.12-553.07-97.12-533.82-96.62-514.69-95.64-397.26-54.4-293.77-.45-204.52 66.03-160.93 49.89-116.96 34.96-72.68 21.28-48.55 13.82-24.32 6.73 0 0" fill="currentColor"/>
+    <path transform="matrix(1,0,0,-1,1905.9505,1222.2905)" d="M0 0C0-60.74-49.24-109.98-109.98-109.98-170.721-109.98-219.961-60.74-219.961 0-219.961 60.741-170.721 109.98-109.98 109.98-49.24 109.98 0 60.741 0 0" fill="currentColor"/>
+  </symbol></svg>
+
   <!-- Top bar: app name, the loaded file, and settings. Stays small so the search is the focus. -->
   <header class="topbar">
     <div class="topbar-inner">
-      <h1 class="brand">Stock Checker</h1>
+      <h1 class="brand">
+        <svg class="logo-icon" aria-hidden="true"><use href="#fosutog-mark"/></svg>
+        <span class="wordmark"><b>FOSUTOG</b><small>Stock Checker</small></span>
+      </h1>
 
       <div class="file-info" id="file-info" hidden>
         <span class="file-status" id="file-status"></span>
         <label class="btn btn-small btn-secondary" for="file-input">Replace file</label>
       </div>
+
+      <button class="theme-toggle" id="theme-toggle" aria-label="Switch light or dark mode">
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.5M12 19v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.5M19 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+      </button>
 
       <details class="settings-menu">
         <summary class="btn btn-small btn-secondary">Settings</summary>
@@ -34,6 +70,7 @@
   <main class="container">
     <!-- Shown only until a file is loaded -->
     <section class="empty-state" id="empty-state">
+      <svg class="empty-watermark" aria-hidden="true"><use href="#fosutog-mark"/></svg>
       <svg class="empty-icon" viewBox="0 0 48 48" aria-hidden="true">
         <rect x="8" y="4" width="32" height="40" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/>
         <path d="M8 16h32M8 26h32M8 36h32M20 4v40" stroke="currentColor" stroke-width="2.5"/>

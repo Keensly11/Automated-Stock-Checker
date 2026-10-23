@@ -306,6 +306,17 @@ document.addEventListener("drop", (event) => {
   handleFile(event.dataTransfer.files[0]);
 });
 
+// Sun/moon button: switches light/dark and remembers the choice (same key as fosutog.com).
+// Until it's used, the page follows the device's light/dark setting.
+document.getElementById("theme-toggle").addEventListener("click", () => {
+  const root = document.documentElement;
+  const isDark = root.dataset.theme
+    ? root.dataset.theme === "dark"
+    : window.matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = isDark ? "light" : "dark";
+  try { localStorage.setItem("fosutog-theme", root.dataset.theme); } catch (e) {}
+});
+
 for (const chip of elements.filterChips) {
   chip.addEventListener("click", () => setFilter(chip.dataset.filter));
 }
